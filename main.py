@@ -28,6 +28,18 @@ def collisions(player, obstacles):
             if player.colliderect(obstacle_rect): return False
     return True
 
+def player_animation():
+    global player_surface, player_index
+
+    if player_rect.bottom<300:
+        player_surface = player_jump
+    else:
+        player_index+=0.1
+        if player_index>=len(player_walk):
+            player_index = 0
+        player_surface = player_walk[int(player_index)]
+
+
 
 pygame.init()
 
@@ -56,10 +68,23 @@ text_rect = text_surface.get_rect(center = (400,50))
 
 
 #Obstacles
-snail_surface = pygame.image.load('graphics/snail/snail1.png').convert_alpha()
+
+#Snail
+snail_surface1 = pygame.image.load('graphics/snail/snail1.png').convert_alpha()
+snail_surface2 = pygame.image.load('graphics/snail/snail2.png').convert_alpha()
+snail_surfaces = [snail_surface1,snail_surface2]
+snail_surface_index = 0
+snail_surface = snail_surfaces[snail_surface_index]
 # snail_rect = snail_surface.get_rect(midbottom = (800,300))
 # snail_x_pos = 600
-fly_surface = pygame.image.load('graphics/Fly/Fly1.png').convert_alpha()
+
+
+#Fly
+fly_surface1 = pygame.image.load('graphics/Fly/Fly1.png').convert_alpha()
+fly_surface2 = pygame.image.load('graphics/Fly/Fly2.png').convert_alpha()
+fly_surfaces = [fly_surface1,fly_surface2]
+fly_surface_index = 0
+fly_surface = fly_surfaces[fly_surface_index]
 
 obstacle_rect_list = []
 
@@ -67,12 +92,17 @@ obstacle_rect_list = []
 
 
 #Player
-player_surface1 = pygame.image.load('graphics/Player/player_walk_1.png').convert_alpha()
+player_walk_1 = pygame.image.load('graphics/Player/player_walk_1.png').convert_alpha()
+player_walk_2 = pygame.image.load('graphics/Player/player_walk_2.png').convert_alpha()
+player_walk = [player_walk_1, player_walk_2]
+player_index = 0
+player_jump = pygame.image.load('graphics/Player/jump.png')
+player_surface = player_walk[player_index]
 # player_surface1 = pygame.transform.flip(player_surface1,True,False)
 # player_surface1 = pygame.transform.scale(player_surface1, (100, 100))
 # using rectangles to place the object properly . We can have a contact b/w 2 rectangles.
 #We have ground set at  (0,300) so we place the rectangle's y-axis at 300.
-player_rect = player_surface1.get_rect(midbottom = (80,300))
+player_rect = player_surface.get_rect(midbottom = (80,300))
 player_gravity = 0
 
 
@@ -97,6 +127,12 @@ instructions_rect = instructions.get_rect(center = (400,350))
 obstacle_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obstacle_timer,1500)
 #Trigger the timer after every 1500 ms
+
+snail_animation_timer = pygame.USEREVENT + 2
+pygame.time.set_timer(snail_animation_timer, 500)
+
+fly_animation_timer = pygame.USEREVENT + 3
+pygame.time.set_timer(fly_animation_timer,200)
 
 
 while True:
@@ -124,13 +160,34 @@ while True:
                 game_active = True
                 # snail_rect.left = 700
                 start_time = pygame.time.get_ticks()//1000
+        if game_active:
+            if event.type == obstacle_timer:
+                n = randint(0,2)
+                if n:
+                    obstacle_rect_list.append(snail_surface.get_rect(bottomright = (randint(900,1100),300)))
+                else:
+                    obstacle_rect_list.append(fly_surface.get_rect(bottomright=(randint(900, 1100), 210)))
 
-        if event.type == obstacle_timer and game_active:
-            n = randint(0,2)
-            if n:
-                obstacle_rect_list.append(snail_surface.get_rect(bottomright = (randint(900,1100),300)))
-            else:
-                obstacle_rect_list.append(fly_surface.get_rect(bottomright=(randint(900, 1100), 210)))
+
+            #Snail animations
+            if event.type == snail_animation_timer:
+                if snail_surface_index == 0: snail_surface_index = 1
+                else: snail_surface_index = 0
+                snail_surface = snail_surfaces[snail_surface_index]
+
+
+            #Fly animations
+            if event.type == fly_animation_timer:
+                if fly_surface_index == 0: fly_surface_index = 1
+                else: fly_surface_index = 0
+                fly_surface = fly_surfaces[fly_surface_index]
+
+
+
+
+
+
+
     if game_active:
         # Block image transfer - Putting one surface on another
         screen.blit(sky_surface,(0,0))
@@ -150,7 +207,8 @@ while True:
         player_gravity+=1
         player_rect.y+=player_gravity
         player_rect.bottom = min(player_rect.bottom, 300)
-        screen.blit(player_surface1,player_rect)
+        player_animation()
+        screen.blit(player_surface,player_rect)
 
         obstacle_rect_list = obstacle_movement(obstacle_rect_list)
 
