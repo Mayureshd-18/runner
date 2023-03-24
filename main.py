@@ -2,6 +2,7 @@ import pygame,sys
 
 from random import randint
 
+
 def display_score():
     current_time = pygame.time.get_ticks()//1000 - start_time
     score_surf = test_font.render(f"Score:{current_time}", False, 'Black')
@@ -105,7 +106,12 @@ player_surface = player_walk[player_index]
 player_rect = player_surface.get_rect(midbottom = (80,300))
 player_gravity = 0
 
+jump_sound = pygame.mixer.Sound('audio/jump.mp3')
+jump_sound.set_volume(0.2)
 
+bg_music = pygame.mixer.Sound('audio/music.wav')
+
+bg_music.set_volume(0.2)
 
 
 #Intro screen
@@ -146,8 +152,10 @@ while True:
         #     if player_rect.collidepoint(event.pos): print("Collision")
 
         if game_active:
+            bg_music.play(loops = -1)
             if  event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and player_rect.bottom>=300:
                 player_gravity = -20
+                jump_sound.play()
 
 
             if event.type == pygame.QUIT:
